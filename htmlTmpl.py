@@ -156,14 +156,14 @@ HideMessages()
 
 class HTMLPage():
     def __init__(self):
-        self.data = ""
+        self.data = u""
 
     def addLine(self, line, withBr = True):
         self.data += line
         if withBr:
-            self.data += "<br />"
-        self.data += "\n"
+            self.data += u"<br />"
+        self.data += u"\n"
 
     def getPage(self):
         page = header + self.data + footer
-        return page
+        return page.encode('utf-8')
