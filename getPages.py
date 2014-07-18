@@ -125,8 +125,8 @@ def sendMsg(toAddress, fromAddress, subject, message):
         page.addLine(u"<h1>Senders address not valid!</h1>", False)
         error = True
 
-    subject = subject.encode('base64')
-    message = message.encode('base64')
+    subject = subject.encode('utf-8').encode('base64')
+    message = message.encode('utf-8').encode('base64')
 
     if error:
         return page.getPage()
@@ -196,11 +196,11 @@ def inbox():
         subject = message['subject'].decode('base64').decode('utf-8')
         if not subject.startswith(u"Re:"):
             subject = u"Re: " + subject
-        subject = subject.encode('base64')
+        subject = subject.encode('utf-8').encode('base64')
 
         text = message['message'].decode('base64').decode('utf-8')
         text = u"\n\n------------------------------------------------------\n" + text
-        text = text.encode('base64')
+        text = text.encode('utf-8').encode('base64')
 
         page.addLine(u"<a href='composer?to=%s&subject=%s&text=%s'>Reply</a>" % (to, subject, text), False)
         
@@ -339,7 +339,7 @@ def subscribe(addr, label):
         return
 
     try:
-        api.addSubscription(addr, label.encode('base64'))
+        api.addSubscription(addr, label.encode('utf-8').encode('base64'))
     except:
         pass
 
@@ -454,7 +454,7 @@ def addAddressBookEntry(addr, label):
 
     if (validAddress(addr)):
         try:
-            api.addAddressBookEntry(addr, label.encode('base64'))
+            api.addAddressBookEntry(addr, label.encode('utf-8').encode('base64'))
         except:
             pass
 
