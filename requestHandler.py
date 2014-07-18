@@ -39,8 +39,12 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 self.send_header("Set-Cookie", "sessionID=" + sessionID)
                 authenticated = True
                 self.path = "/inbox"
+                sleep(1) #To slow down brutforce
+            else:
+                self.wfile.write(password.enterHTML(True))
+                sleep(1) #To slow down brutforce
+                return
 
-            sleep(1) #To slow down brutforce
 
         if self.path.startswith("/setpwd") and not password.isSet():
             query = parseQuery(self.path)
@@ -54,7 +58,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
         if self.path.startswith("/logout"):
             sessionID = None
 
-        if sessionID:
+        if sessionID and not authenticated:
             try:
                 cookie = Cookie.SimpleCookie(self.headers.getheader("cookie"))
                 if sessionID == cookie['sessionID'].value:

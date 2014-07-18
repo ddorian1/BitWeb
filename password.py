@@ -42,10 +42,12 @@ def setHTML():
 
     return page.getPage()
 
-def enterHTML():
+def enterHTML(wrongPassword = False):
     page = HTMLPage()
 
     page.addLine("<h1>Login</h1>", False)
+    if wrongPassword:
+        page.addLine("Password not correct!")
     page.addLine("<form action='pwd' method='get'>", False)
     page.addLine("<input type='password' name='pwd' id='focus' />")
     page.addLine("<input type='submit' class='button' value='Login' />", False)
