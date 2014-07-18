@@ -128,7 +128,9 @@ function ShowHideDiv(id) {
 function HideMessages() {
     obj = document.getElementsByClassName("msgBody");
     for (i in obj) {
-        obj[i].style.display = 'none';
+        if(obj[i].style != undefined) {
+            obj[i].style.display = 'none';
+        }
     }
 }
 </script>
@@ -148,7 +150,10 @@ function HideMessages() {
 
 footer = """
 <script type="text/javascript">
-HideMessages()
+if (document.getElementById("focus")) {
+    document.getElementById("focus").focus();
+}
+HideMessages();
 </script>
 </body>
 </html>

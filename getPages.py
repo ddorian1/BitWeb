@@ -299,7 +299,7 @@ def subscriptions():
 
     #Form to subscribe to address
     page.addLine(u"<form action='subscribe' methode='get'>", False)
-    page.addLine(u"<input type='text' name='addr' placeholder='Address' />", False)
+    page.addLine(u"<input type='text' name='addr' id='focus' placeholder='Address' />", False)
     page.addLine(u"<input type='text' name='label' placeholder='Label' />", False)
     page.addLine(u"<input type='submit' value='Subscribe' class='button' />", False)
     page.addLine(u"</form>")
@@ -375,7 +375,7 @@ def composeMsg(to = "", subject = "", text = ""):
     page.addLine(u"</select>")
 
     page.addLine(u"<input type='text' size='40' name='subject' placeholder='Subject' value='%s' />" % (subject))
-    page.addLine(u"<textarea name='text' rows='25' cols='50' placeholder='Your message...'>%s</textarea>" % (text))
+    page.addLine(u"<textarea name='text' id='focus' rows='25' cols='50' placeholder='Your message...'>%s</textarea>" % (text))
     page.addLine(u"<input type='submit' class='button' name='send' value='Send message' />")
     page.addLine(u"</form>")
 
@@ -390,7 +390,7 @@ def addressBook():
 
         #Form to add address
         page.addLine(u"<form action='addaddress' methode='get'>", False)
-        page.addLine(u"<input type='text' name='addr' placeholder='Address' />", False)
+        page.addLine(u"<input type='text' name='addr' id='focus' placeholder='Address' />", False)
         page.addLine(u"<input type='text' name='label' placeholder='Label' />", False)
         page.addLine(u"<input type='submit' value='Add' class='button' />", False)
         page.addLine(u"</form>")
@@ -454,7 +454,7 @@ def addAddressBookEntry(addr, label):
 
     if (validAddress(addr)):
         try:
-            api.addAddressBookEntry(addr, encode('base64'))
+            api.addAddressBookEntry(addr, label.encode('base64'))
         except:
             pass
 

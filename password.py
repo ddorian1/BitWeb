@@ -37,7 +37,7 @@ def setHTML():
 
     page.addLine("<h1>Set password</h1>", False)
     page.addLine("<form action='setpwd' method='get'>", False)
-    page.addLine("<input type='password' name='pwd' />")
+    page.addLine("<input type='password' name='pwd' id='focus' />")
     page.addLine("<input type='submit' class='button' value='Set password' />", False)
 
     return page.getPage()
@@ -47,7 +47,7 @@ def enterHTML():
 
     page.addLine("<h1>Login</h1>", False)
     page.addLine("<form action='pwd' method='get'>", False)
-    page.addLine("<input type='password' name='pwd' />")
+    page.addLine("<input type='password' name='pwd' id='focus' />")
     page.addLine("<input type='submit' class='button' value='Login' />", False)
 
     return page.getPage()
