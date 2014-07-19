@@ -9,7 +9,7 @@ This is an early development version, USE AT YOUR OWN RISK!
 What should already work:
 
 - Read messages
-- Write messages (no broadcast at the moment)
+- Write messages
 - Manage your subscriptions
 - Use the address book
 

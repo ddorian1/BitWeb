@@ -110,14 +110,14 @@ def validAddress(address):
     else:
         return False
 
-def sendMsg(toAddress, fromAddress, subject, message): 
+def sendMsg(toAddress, fromAddress, subject, message, broadcast=False): 
     """Sends message and return status page.
     All parameters must be unencoded!"""
     
     page = HTMLPage()
     error = False
 
-    if not validAddress(toAddress):
+    if not validAddress(toAddress) and not broadcast:
         page.addLine(u"<h1>Receivers address not valid!</h1>", False)
         error = True
         
@@ -132,7 +132,10 @@ def sendMsg(toAddress, fromAddress, subject, message):
         return page.getPage()
             
     try:
-        ackData = api.sendMessage(toAddress, fromAddress, subject, message)
+        if broadcast:
+            api.sendBroadcast(fromAddress, subject, message)
+        else:
+            api.sendMessage(toAddress, fromAddress, subject, message)
         page.addLine(u"<h1>Message send!</h1>", False)
         page.addLine(u"For status see outbox.")
     except:
@@ -357,7 +360,15 @@ def composeMsg(to = "", subject = "", text = ""):
 
     page.addLine(u"<h1>Composer</h1>", False)
     page.addLine(u"<form action='sendmsg' method='get'>", False)
-    page.addLine(u"<input type='text' size='40' name='to' placeholder='To' value='%s' />" % (to))
+
+    #Add radio buttons to select direct message or broadcast
+    page.addLine(u"<input type='radio' name='broadcast' value='false' onclick='broadcastMsg(false)' checked />", False)
+    page.addLine(u"Send direct message")
+    page.addLine(u"<input type='radio' name='broadcast' value='true' onclick='broadcastMsg(true)' />", False)
+    page.addLine(u"Send broadcast message")
+
+    #To
+    page.addLine(u"<input type='text' size='40' name='to' id='to' placeholder='To' value='%s' />" % (to))
 
     #Get own address to chose sender
     page.addLine(u"From: <select name='from' size='1'>", False)
@@ -374,6 +385,7 @@ def composeMsg(to = "", subject = "", text = ""):
 
     page.addLine(u"</select>")
 
+    #Subject and message
     page.addLine(u"<input type='text' size='40' name='subject' placeholder='Subject' value='%s' />" % (subject))
     page.addLine(u"<textarea name='text' id='focus' rows='25' cols='50' placeholder='Your message...'>%s</textarea>" % (text))
     page.addLine(u"<input type='submit' class='button' name='send' value='Send message' />")

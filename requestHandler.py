@@ -112,10 +112,17 @@ class myRequestHandler(BaseHTTPRequestHandler):
             query = parseQuery(self.path)
             
             try:
-                toAddress = query["to"][0]
+                if query.has_key("to"):
+                    toAddress = query["to"][0]
+                else:
+                    toAddress = ""
                 fromAddress = query["from"][0]
                 subject = query["subject"][0]
                 text = query["text"][0]
+                if query["broadcast"][0] == "true":
+                    broadcast = True
+                else:
+                    broadcast = False
             except:
                 page = HTMLPage()
                 page.addLine("<h1>Error while parsing message.")
@@ -123,7 +130,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(page.getPage())
                 return
 
-            self.wfile.write(getPages.sendMsg(toAddress, fromAddress, subject, text))
+            self.wfile.write(getPages.sendMsg(toAddress, fromAddress, subject, text, broadcast))
 
         elif self.path.startswith("/subscriptions"):
             self.wfile.write(getPages.subscriptions())

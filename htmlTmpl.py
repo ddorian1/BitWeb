@@ -133,6 +133,11 @@ function HideMessages() {
         }
     }
 }
+
+function broadcastMsg(brd) {
+    document.getElementById("to").disabled = brd;
+}
+
 </script>
 
 </head>
