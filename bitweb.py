@@ -15,8 +15,8 @@ SSL = True
 #Path to your SSL keyfile
 SSLKey = "/path/to/your.key"
 #Path to your SSL certfile
-SSLCrt = "path/to/yout.crt"
-#Optional path to your CA certificat
+SSLCrt = "path/to/your.crt"
+#Optional path to your CA certificate
 SSLCACert = None
 
 def main():
