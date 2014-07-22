@@ -8,15 +8,15 @@ This is an early development version, USE AT YOUR OWN RISK!
 
 What should already work:
 
-- Read messages
-- Write messages
-- Manage your subscriptions
-- Use the address book
+* Read messages
+* Write messages
+* Manage your subscriptions
+* Manage your addresses (Can't yet create deterministic addresses)
+* Use the address book
 
 What's not implemented yet:
 
-- Manage your addresses
-- Chans
+* Chans
 
 To use it, just download the files to your sever, set the port you want to use in bitweb.py. You have to set up the api in PyBitmessage's keys.dat file (See https://bitmessage.org/wiki/API_Reference) and run bitweb.py as the same user as PyBitmessage.
 BitWeb will try to read the api settings from PyBitmessage keys.dat file.

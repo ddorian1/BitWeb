@@ -148,6 +148,7 @@ function broadcastMsg(brd) {
     <a href="composer" class="menu">New message</a>
     <a href="subscriptions" class="menu">Subscriptions</a>
     <a href="addressbook" class="menu">Address book</a>
+    <a href="identities" class="menu">Your identities</a>
     <a href="logout" class="menu">Logout</a>
     <br />
 <hr />
@@ -172,7 +173,7 @@ class HTMLPage():
         self.data += line
         if withBr:
             self.data += u"<br />"
-        self.data += u"\n"
+            self.data += u"\n"
 
     def getPage(self):
         page = header + self.data + footer

@@ -401,7 +401,7 @@ def addressBook():
         page.addLine(u"<h1>Address book</h1>", False)
 
         #Form to add address
-        page.addLine(u"<form action='addaddress' methode='get'>", False)
+        page.addLine(u"<form action='addaddressbookentry' methode='get'>", False)
         page.addLine(u"<input type='text' name='addr' id='focus' placeholder='Address' />", False)
         page.addLine(u"<input type='text' name='label' placeholder='Label' />", False)
         page.addLine(u"<input type='submit' value='Add' class='button' />", False)
@@ -417,7 +417,7 @@ def addressBook():
             page.addLine(u"<div class='label'>%s</div>" % (label), False)
             page.addLine(address)
             page.addLine(u"<a href='composer?to=%s'>Write message</a>" % (address), False)
-            page.addLine(u"<a href='deladdress?addr=%s'>Delete</a>" % (address), False)
+            page.addLine(u"<a href='deladdressbookentry?addr=%s'>Delete</a>" % (address), False)
             page.addLine(u"</div>")
 
 
@@ -480,6 +480,62 @@ def delAddressBookEntry(addr):
         except:
             pass
 
+def identities():
+    """Returns page with identities or error page."""
+
+    page = HTMLPage()
+
+    page.addLine(u"<h1>Your Identities</h1>", False)
+
+    #Form to add random address
+    page.addLine(u"<form action='addrandomaddress' methode='get'>", False)
+    page.addLine(u"New random address: ", False)
+    page.addLine(u"<input type='text' name='label' placeholder='Label' />", False)
+    page.addLine(u"<input type='submit' value='Generate' class='button' />", False)
+    page.addLine(u"</form>")
+
+    #Show all addresses
+    try:
+        addresses = json.loads(api.listAddresses2())
+    except:
+        isInit = False
+        return connectionErrorPage()
+    
+    for addr in addresses['addresses']:
+        if (addr['chan']):
+            continue
+        label = sanitize(addr['label'].decode('base64').decode('utf-8'))
+        address = addr['address']
+        page.addLine(u"<div class='addrbookentry'>", False)
+        if (addr['enabled']):
+            page.addLine(u"<div class='label'>%s</div>" % (label), False)
+        else:
+            page.addLine(label + u" (Disabled)")
+        page.addLine(address)
+        page.addLine(u"(Stream %s)" % (str(addr['stream'])))
+        page.addLine(u"<a href='deladdress?addr=%s'>Delete</a>" % (address), False)
+        page.addLine(u"</div>")
+
+    return page.getPage()
+
+def genRandomAddress(label):
+    """Generates random address.
+    Fails silently."""
+
+    try:
+        api.createRandomAddress(label.encode('base64'))
+    except:
+        pass
+
+def delAddress(addr):
+    """Deletes address.
+    Fails silently."""
+
+    try:
+        api.deleteAddress(addr)
+    except:
+        pass
+        
 def initApi():
     """Init api. Returns error page in case of error, else returns False."""
 

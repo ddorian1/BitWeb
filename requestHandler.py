@@ -161,7 +161,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
         elif self.path.startswith("/addressbook"):
             self.wfile.write(getPages.addressBook())
 
-        elif self.path.startswith("/addaddress"):
+        elif self.path.startswith("/addaddressbookentry"):
             query = parseQuery(self.path)
 
             try:
@@ -173,7 +173,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
             self.wfile.write(getPages.addressBook())
 
-        elif self.path.startswith("/deladdress"):
+        elif self.path.startswith("/deladdressbookentry"):
             query = parseQuery(self.path)
 
             try:
@@ -183,6 +183,31 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 pass
 
             self.wfile.write(getPages.addressBook())
+
+        elif self.path.startswith("/identities"):
+            self.wfile.write(getPages.identities())
+
+        elif self.path.startswith("/addrandomaddress"):
+            query = parseQuery(self.path)
+
+            try:
+                label = query["label"][0]
+                getPages.genRandomAddress(label)
+            except:
+                pass
+
+            self.wfile.write(getPages.identities())
+
+        elif self.path.startswith("/deladdress"):
+            query = parseQuery(self.path)
+
+            try:
+                addr = query["addr"][0]
+                getPages.delAddress(addr)
+            except:
+                pass
+
+            self.wfile.write(getPages.identities())
 
         elif self.path.startswith("/markread"):
             query = parseQuery(self.path)
