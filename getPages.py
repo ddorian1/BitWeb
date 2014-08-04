@@ -317,7 +317,7 @@ def subscriptions():
             page.addLine(label + u" (Disabled)")
         page.addLine(sub['address'])
 
-        page.addLine(u"<a href='unsubscribe?addr=%s'>Unsubscribe</a>" % (sub['address']), False)
+        page.addLine(u"<a href='unsubscribe?addr=%s' onclick='return confirm(\"Unsubscribe from %s?\")'>Unsubscribe</a>" % (sub['address'], label), False)
         page.addLine(u"</div>")
                   
     return page.getPage()
@@ -417,7 +417,7 @@ def addressBook():
             page.addLine(u"<div class='label'>%s</div>" % (label), False)
             page.addLine(address)
             page.addLine(u"<a href='composer?to=%s'>Write message</a>" % (address), False)
-            page.addLine(u"<a href='deladdressbookentry?addr=%s'>Delete</a>" % (address), False)
+            page.addLine(u"<a href='deladdressbookentry?addr=%s' onclick='return confirm(\"Delete %s?\")'>Delete</a>" % (address, label), False)
             page.addLine(u"</div>")
 
 
@@ -479,6 +479,79 @@ def delAddressBookEntry(addr):
             api.deleteAddressBookEntry(addr)
         except:
             pass
+
+def chans():
+    """Returns page with chans or error page."""
+
+    page = HTMLPage()
+
+    page.addLine(u"<h1>Chans</h1>", False)
+
+    #Form to join chan
+    page.addLine(u"<form action='joinchan' methode='get'>", False)
+    page.addLine(u"<input type='text' name='pw' placeholder='Passphrase' />", False)
+    page.addLine(u"<input type='text' name='addr' placeholder='Address' />", False)
+    page.addLine(u"<input type='submit' value='Join' class='button' />", False)
+    page.addLine(u"</form>")
+
+    #Form to create chan
+    page.addLine(u"<form action='createchan' methode='get'>", False)
+    page.addLine(u"<input type='text' name='pw' placeholder='Passphrase' />", False)
+    page.addLine(u"<input type='submit' value='Create' class='button' />", False)
+    page.addLine(u"</form>")
+
+    #Show all chans
+    try:
+        addresses = json.loads(api.listAddresses2())
+    except:
+        isInit = False
+        return connectionErrorPage()
+    
+    for addr in addresses['addresses']:
+        if (not addr['chan']):
+            continue
+        label = sanitize(addr['label'].decode('base64').decode('utf-8'))
+        if label.startswith("[chan] "):
+            label = label[7:]
+        address = addr['address']
+        page.addLine(u"<div class='addrbookentry'>", False)
+        if (addr['enabled']):
+            page.addLine(u"<div class='label'>%s</div>" % (label), False)
+        else:
+            page.addLine(label + u" (Disabled)")
+        page.addLine(address)
+        page.addLine(u"(Stream %s)" % (str(addr['stream']))) #????
+        page.addLine(u"<a href='leavechan?addr=%s' onclick='return confirm(\"Leave %s?\")'>Leave</a>" % (address, label), False)
+        page.addLine(u"</div>")
+
+    return page.getPage()
+
+def createChan(pw):
+    """Creates Chan.
+    Fails silently."""
+
+    try:
+        api.createChan(pw.encode('base64'))
+    except:
+        pass
+
+def joinChan(pw, addr):
+    """Joins Chan.
+    Fails silently."""
+
+    try:
+        api.joinChan(pw.encode('base64'), addr)
+    except:
+        pass
+
+def leaveChan(addr):
+    """Leave Chan.
+    Fails silenty."""
+
+    try:
+        api.leaveChan(addr)
+    except:
+        pass
 
 def identities():
     """Returns page with identities or error page."""

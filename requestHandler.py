@@ -184,6 +184,43 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
             self.wfile.write(getPages.addressBook())
 
+        elif self.path.startswith("/chans"):
+            self.wfile.write(getPages.chans())
+
+        elif self.path.startswith("/createchan"):
+            query = parseQuery(self.path)
+
+            try:
+                pw = query["pw"][0]
+                getPages.createChan(pw)
+            except:
+                pass
+            
+            self.wfile.write(getPages.chans())
+
+        elif self.path.startswith("/joinchan"):
+            query = parseQuery(self.path)
+
+            try:
+                pw = query["pw"][0]
+                addr = query["addr"][0]
+                getPages.joinChan(pw, addr)
+            except:
+                pass
+            
+            self.wfile.write(getPages.chans())
+
+        elif self.path.startswith("/leavechan"):
+            query = parseQuery(self.path)
+
+            try:
+                addr = query["addr"][0]
+                getPages.leaveChan(addr)
+            except:
+                pass
+            
+            self.wfile.write(getPages.chans())
+
         elif self.path.startswith("/identities"):
             self.wfile.write(getPages.identities())
 

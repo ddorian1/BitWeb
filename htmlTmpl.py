@@ -153,6 +153,7 @@ function broadcastMsg(brd) {
     <a href="outbox" class="menu">Outbox</a>
     <a href="composer" class="menu">New message</a>
     <a href="subscriptions" class="menu">Subscriptions</a>
+    <a href="chans" class="menu">Chans</a>
     <a href="addressbook" class="menu">Address book</a>
     <a href="identities" class="menu">Your identities</a>
     <a href="logout" class="menu">Logout</a>

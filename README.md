@@ -13,9 +13,6 @@ What should already work:
 * Manage your subscriptions
 * Manage your addresses (Can't yet create deterministic addresses)
 * Use the address book
-
-What's not implemented yet:
-
 * Chans
 
 To use it, just download the files to your sever, set the port you want to use in bitweb.py. You have to set up the api in PyBitmessage's keys.dat file (See https://bitmessage.org/wiki/API_Reference) and run bitweb.py as the same user as PyBitmessage.
