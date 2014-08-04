@@ -513,7 +513,7 @@ def identities():
             page.addLine(label + u" (Disabled)")
         page.addLine(address)
         page.addLine(u"(Stream %s)" % (str(addr['stream'])))
-        page.addLine(u"<a href='deladdress?addr=%s'>Delete</a>" % (address), False)
+        page.addLine(u"<a href='deladdress?addr=%s' onclick='return confirm(\"Remove %s permanently?\")'>Delete</a>" % (address, label), False)
         page.addLine(u"</div>")
 
     return page.getPage()
