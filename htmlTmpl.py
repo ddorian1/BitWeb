@@ -15,11 +15,13 @@ body {
 }
 
 a, input.button, select {
+    white-space: nowrap;
     color: #FDFDFD;
     background-color: #2B2B2B;
     text-decoration: none;
     font-weight: bold;
     padding: 2px;
+    margin-right: 4px;
     border: none;
 } 
 
@@ -28,6 +30,10 @@ a.menu {
     margin: 5px;
     line-height: 2.5;
     font-size: large;
+}
+
+input {
+    margin-right: 4px;
 }
 
 div {
