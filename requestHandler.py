@@ -20,13 +20,26 @@ def parseQuery(url):
 class myRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         global sessionID
-
         self.send_response(200)
+
+        #return favicon.ico
+        if self.path.startswith("/favicon.ico"):
+            self.send_header('Content-type', 'image/x-icon')
+            self.end_headers()
+            try: 
+                f = open("favicon.ico", "rb")
+                self.wfile.write(f.read())
+            except:
+                pass
+            return
+
+        #Header for text
         self.send_header('Content-type', 'text/html')
 
+        #Session Management
         authenticated = False
 
-        #Session Management
+        #Check password
         if self.path.startswith("/pwd"):
             query = parseQuery(self.path)
             try:
@@ -41,11 +54,13 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 self.path = "/inbox"
                 sleep(1) #To slow down brutforce
             else:
+                self.end_headers()
                 self.wfile.write(password.enterHTML(True))
                 sleep(1) #To slow down brutforce
                 return
 
 
+        #Set password
         if self.path.startswith("/setpwd") and not password.isSet():
             query = parseQuery(self.path)
             try:
@@ -55,9 +70,11 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 authenticated = False
 
+        #Logout
         if self.path.startswith("/logout"):
             sessionID = None
 
+        #Check seesionID from cookie
         if sessionID and not authenticated:
             try:
                 cookie = Cookie.SimpleCookie(self.headers.getheader("cookie"))
@@ -68,6 +85,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
         self.end_headers()
 
+        #If not authenticated
         if not authenticated:
             if password.isSet():
                 self.wfile.write(password.enterHTML())
@@ -78,6 +96,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
         #End session management. 
         #The following code should only be executed when the user has passed authentication!
 
+        #Init api
         if (not getPages.apiIsInit):
             error = getPages.initApi();
 
@@ -85,6 +104,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(error)
                 return
                 
+        #Handel called URL
         if self.path.startswith("/inbox") or self.path == "/":
             self.wfile.write(getPages.inbox())
 
@@ -288,5 +308,5 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
         else:
             html = HTMLPage()
-            html.addLine("<h1>404 - Not found</h1>")
+            html.addLine("<h1>Page not found!</h1>", False)
             self.wfile.write(html.getPage())

@@ -54,7 +54,7 @@ def apiData():
             config.get('bitmessagesettings','port')
         except:
             page = HTMLPage()
-            page.addLine(u"<h1>Error</h1>")
+            page.addLine(u"<h1>Error</h1>", False)
             page.addLine(u"Can't find keys.dat!")
 
             return [page.getPage(), False]
@@ -94,7 +94,7 @@ def connectionErrorPage():
     """Returns page for connection error."""
 
     page = HTMLPage()
-    page.addLine(u"<h1>Error</h1>")
+    page.addLine(u"<h1>Error</h1>", False)
     page.addLine(u"Can't connect to bitmessage daemon!")
     return page.getPage()
 
