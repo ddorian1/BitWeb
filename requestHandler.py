@@ -18,17 +18,25 @@ def parseQuery(url):
     return cgi.parse_qs(query, keep_blank_values = True)
 
 class myRequestHandler(BaseHTTPRequestHandler):
+    def write(self, data):
+        if not self.headerFinished:
+            self.headerFinished = True
+            self.end_headers()
+
+        self.wfile.write(data)
+
     def do_GET(self):
         global sessionID
+        self.headerFinished = False
         self.send_response(200)
 
         #return favicon.ico
         if self.path.startswith("/favicon.ico"):
             self.send_header('Content-type', 'image/x-icon')
-            self.end_headers()
+
             try: 
                 f = open("favicon.ico", "rb")
-                self.wfile.write(f.read())
+                self.write(f.read())
             except:
                 pass
             return
@@ -45,7 +53,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             try:
                 pwd = query["pwd"][0]
             except:
-                pwd = ""
+                pwd = None
 
             if password.isCorrect(pwd):
                 sessionID = urandom(16).encode('base64').strip()
@@ -54,8 +62,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 self.path = "/inbox"
                 sleep(1) #To slow down brutforce
             else:
-                self.end_headers()
-                self.wfile.write(password.enterHTML(True))
+                self.write(password.enterHTML(True))
                 sleep(1) #To slow down brutforce
                 return
 
@@ -83,14 +90,12 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 authenticated = False
 
-        self.end_headers()
-
         #If not authenticated
         if not authenticated:
             if password.isSet():
-                self.wfile.write(password.enterHTML())
+                self.write(password.enterHTML())
             else:
-                self.wfile.write(password.setHTML())
+                self.write(password.setHTML())
             return
 
         #End session management. 
@@ -101,15 +106,15 @@ class myRequestHandler(BaseHTTPRequestHandler):
             error = getPages.initApi();
 
             if (error):
-                self.wfile.write(error)
+                self.write(error)
                 return
                 
         #Handel called URL
         if self.path.startswith("/inbox") or self.path == "/":
-            self.wfile.write(getPages.inbox())
+            self.write(getPages.inbox())
 
         elif self.path.startswith("/outbox"):
-            self.wfile.write(getPages.outbox())
+            self.write(getPages.outbox())
 
         elif self.path.startswith("/composer"):
             query = parseQuery(self.path)
@@ -126,7 +131,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
                 
-            self.wfile.write(getPages.composeMsg(toAddress, subject, text))
+            self.write(getPages.composeMsg(toAddress, subject, text))
 
         elif self.path.startswith("/sendmsg"):
             query = parseQuery(self.path)
@@ -147,13 +152,13 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 page = HTMLPage()
                 page.addLine("<h1>Error while parsing message.")
                 page.addLine("Message NOT send!</h1>")
-                self.wfile.write(page.getPage())
+                self.write(page.getPage())
                 return
 
-            self.wfile.write(getPages.sendMsg(toAddress, fromAddress, subject, text, broadcast))
+            self.write(getPages.sendMsg(toAddress, fromAddress, subject, text, broadcast))
 
         elif self.path.startswith("/subscriptions"):
-            self.wfile.write(getPages.subscriptions())
+            self.write(getPages.subscriptions())
 
         elif self.path.startswith("/unsubscribe"):
             query = parseQuery(self.path)
@@ -164,7 +169,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
 
-            self.wfile.write(getPages.subscriptions())
+            self.write(getPages.subscriptions())
 
         elif self.path.startswith("/subscribe"):
             query = parseQuery(self.path)
@@ -176,10 +181,10 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
 
-            self.wfile.write(getPages.subscriptions())
+            self.write(getPages.subscriptions())
 
         elif self.path.startswith("/addressbook"):
-            self.wfile.write(getPages.addressBook())
+            self.write(getPages.addressBook())
 
         elif self.path.startswith("/addaddressbookentry"):
             query = parseQuery(self.path)
@@ -191,7 +196,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
 
-            self.wfile.write(getPages.addressBook())
+            self.write(getPages.addressBook())
 
         elif self.path.startswith("/deladdressbookentry"):
             query = parseQuery(self.path)
@@ -202,10 +207,10 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
 
-            self.wfile.write(getPages.addressBook())
+            self.write(getPages.addressBook())
 
         elif self.path.startswith("/chans"):
-            self.wfile.write(getPages.chans())
+            self.write(getPages.chans())
 
         elif self.path.startswith("/createchan"):
             query = parseQuery(self.path)
@@ -216,7 +221,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
             
-            self.wfile.write(getPages.chans())
+            self.write(getPages.chans())
 
         elif self.path.startswith("/joinchan"):
             query = parseQuery(self.path)
@@ -228,7 +233,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
             
-            self.wfile.write(getPages.chans())
+            self.write(getPages.chans())
 
         elif self.path.startswith("/leavechan"):
             query = parseQuery(self.path)
@@ -239,10 +244,10 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
             
-            self.wfile.write(getPages.chans())
+            self.write(getPages.chans())
 
         elif self.path.startswith("/identities"):
-            self.wfile.write(getPages.identities())
+            self.write(getPages.identities())
 
         elif self.path.startswith("/addrandomaddress"):
             query = parseQuery(self.path)
@@ -253,7 +258,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
 
-            self.wfile.write(getPages.identities())
+            self.write(getPages.identities())
 
         elif self.path.startswith("/deladdress"):
             query = parseQuery(self.path)
@@ -264,7 +269,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
 
-            self.wfile.write(getPages.identities())
+            self.write(getPages.identities())
 
         elif self.path.startswith("/markread"):
             query = parseQuery(self.path)
@@ -309,4 +314,4 @@ class myRequestHandler(BaseHTTPRequestHandler):
         else:
             html = HTMLPage()
             html.addLine("<h1>Page not found!</h1>", False)
-            self.wfile.write(html.getPage())
+            self.write(html.getPage())

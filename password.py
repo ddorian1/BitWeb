@@ -17,7 +17,7 @@ def isSet():
         return False
 
 def isCorrect(password):
-    if not path.exists("password"):
+    if (not path.exists("password")) or (not password):
         return False
 
     passFile = open("password", "rb")
