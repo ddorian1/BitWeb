@@ -35,6 +35,10 @@ body {
     line-height: 1.5;
 }
 
+a {
+    cursor: pointer;
+}
+
 a, input.button, select {
     white-space: nowrap;
     color: #FDFDFD;
@@ -144,7 +148,7 @@ function delSentMsg(id) {
 
 function ShowHideDiv(id) {
     obj = document.getElementById(id);
-    if(obj.style.display == 'none') {
+    if (obj.style.display == 'none') {
         obj.style.display = 'block';
         markRead(id);
     } else {
@@ -155,7 +159,7 @@ function ShowHideDiv(id) {
 function HideMessages() {
     obj = document.getElementsByClassName("msgBody");
     for (i in obj) {
-        if(obj[i].style != undefined) {
+        if (obj[i].style != undefined) {
             obj[i].style.display = 'none';
         }
     }
@@ -163,6 +167,13 @@ function HideMessages() {
 
 function broadcastMsg(brd) {
     document.getElementById("to").disabled = brd;
+}
+
+function sendForm(id, conf = false) {
+    if (conf) {
+        if (! confirm(conf)) return false;
+    }
+    document.forms[id].submit();
 }
 
 </script>

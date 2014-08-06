@@ -53,7 +53,7 @@ def setHTML():
     page = HTMLPage()
 
     page.addLine("<h1>Set password</h1>", False)
-    page.addLine("<form action='setpwd' method='get'>", False)
+    page.addLine("<form action='setpwd' method='post' enctype='multipart/form-data'>", False)
     page.addLine("<input type='password' name='pwd' id='focus' />")
     page.addLine("<input type='submit' class='button' value='Set password' />", False)
 
@@ -65,7 +65,7 @@ def enterHTML(wrongPassword = False):
     page.addLine("<h1>Login</h1>", False)
     if wrongPassword:
         page.addLine("Password not correct!")
-    page.addLine("<form action='pwd' method='get'>", False)
+    page.addLine("<form action='pwd' method='post' enctype='multipart/form-data'>", False)
     page.addLine("<input type='password' name='pwd' id='focus' />")
     page.addLine("<input type='submit' class='button' value='Login' />", False)
 

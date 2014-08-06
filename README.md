@@ -1,12 +1,12 @@
 BitWeb
 ======
 
-BitWeb should be a WebUI for PyBitmessage (or any other bitmessage client that implements the api).
+BitWeb is a WebUI for PyBitmessage (or any other bitmessage client that implements the api).
 It can be used to run bitmessage on your own server and access it easily from wherever you are.
 
 This is an early development version, USE AT YOUR OWN RISK!
 
-What should already work:
+This should already work:
 
 * Read messages
 * Write messages
@@ -15,7 +15,7 @@ What should already work:
 * Use the address book
 * Chans
 
-To use it, just download the files to your sever, set the port you want to use in bitweb.py. You have to set up the api in PyBitmessage's keys.dat file (See https://bitmessage.org/wiki/API_Reference) and run bitweb.py as the same user as PyBitmessage.
+To use it, just download the files to your sever and set the port you want to use in bitweb.py. You have to set up the api in PyBitmessage's keys.dat file (See https://bitmessage.org/wiki/API_Reference) and run bitweb.py as the same user as PyBitmessage.
 BitWeb will try to read the api settings from PyBitmessage keys.dat file.
 You will be prompted to set a password at the first visit of the site. If you wish to set a new one, just delete the file 'password' in BitWeb's directory and you will be asked again.
 

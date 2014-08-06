@@ -220,9 +220,15 @@ def inbox():
         text = u"\n\n------------------------------------------------------\n" + text
         text = text.encode('utf-8').encode('base64')
 
-        page.addLine(u"<a href='composer?to=%s&subject=%s&text=%s'>Reply</a>" % (to, subject, text), False)
-        
-        #Add buttons to switch read status
+        #Hidden form for reply
+        page.addLine(u"<form id='%s' action='composer' method='post' enctype='multipart/form-data'>" % (msgId), False)
+        page.addLine(u"<input name='to' value='%s' type='hidden'>" % (to), False)
+        page.addLine(u"<input name='subject' value='%s' type='hidden'>" % (subject), False)
+        page.addLine(u"<input name='text' value='%s' type='hidden'>" % (text), False)
+        page.addLine(u"</form>", False)
+
+        #Add buttons 
+        page.addLine(u"<a onclick='sendForm(\"%s\")'>Reply</a>" % (msgId), False)
         page.addLine(u"<a onclick='markUnread(\"%s\")'>Unread</a>" % (msgId), False)
         page.addLine(u"<a onclick='delMsg(\"%s\")'>Delete</a>" % (msgId))
         page.addLine(u"</div>")
@@ -316,7 +322,7 @@ def subscriptions():
     page.addLine(u"<h1>Subscriptions</h1>", False)
 
     #Form to subscribe to address
-    page.addLine(u"<form action='subscribe' methode='get'>", False)
+    page.addLine(u"<form action='subscribe' method='post' enctype='multipart/form-data'>", False)
     page.addLine(u"<input type='text' name='addr' id='focus' placeholder='Address' />", False)
     page.addLine(u"<input type='text' name='label' placeholder='Label' />", False)
     page.addLine(u"<input type='submit' value='Subscribe' class='button' />", False)
@@ -332,7 +338,12 @@ def subscriptions():
             page.addLine(label + u" (Disabled)")
         page.addLine(sub['address'])
 
-        page.addLine(u"<a href='unsubscribe?addr=%s' onclick='return confirm(\"Unsubscribe from %s?\")'>Unsubscribe</a>" % (sub['address'], label), False)
+        #Hidden form for unsubscribe
+        page.addLine(u"<form id='%s' action='unsubscribe' method='post' enctype='multipart/form-data'>" % (sub['address']), False)
+        page.addLine(u"<input name='addr' value='%s' type='hidden'>" % (sub['address']), False)
+        page.addLine(u"</form>", False)
+
+        page.addLine(u"<a onclick='sendForm(\"%s\", \"Unsubscribe from %s?\")'>Unsubscribe</a>" % (sub['address'], label), False)
         page.addLine(u"</div>")
                   
     return page.getPage()
@@ -374,7 +385,7 @@ def composeMsg(to = "", subject = "", text = ""):
         text = text.decode('base64').decode('utf-8')
 
     page.addLine(u"<h1>Composer</h1>", False)
-    page.addLine(u"<form action='sendmsg' method='get'>", False)
+    page.addLine(u"<form action='sendmsg' method='post' enctype='multipart/form-data'>", False)
 
     #Add radio buttons to select direct message or broadcast
     page.addLine(u"<input type='radio' name='broadcast' value='false' onclick='broadcastMsg(false)' checked />", False)
@@ -416,7 +427,7 @@ def addressBook():
         page.addLine(u"<h1>Address book</h1>", False)
 
         #Form to add address
-        page.addLine(u"<form action='addaddressbookentry' methode='get'>", False)
+        page.addLine(u"<form action='addaddressbookentry' method='post' enctype='multipart/form-data'>", False)
         page.addLine(u"<input type='text' name='addr' id='focus' placeholder='Address' />", False)
         page.addLine(u"<input type='text' name='label' placeholder='Label' />", False)
         page.addLine(u"<input type='submit' value='Add' class='button' />", False)
@@ -431,8 +442,20 @@ def addressBook():
             page.addLine(u"<div class='addrbookentry'>", False)
             page.addLine(u"<div class='label'>%s</div>" % (label), False)
             page.addLine(address)
-            page.addLine(u"<a href='composer?to=%s'>Write message</a>" % (address), False)
-            page.addLine(u"<a href='deladdressbookentry?addr=%s' onclick='return confirm(\"Delete %s?\")'>Delete</a>" % (address, label), False)
+
+            #Hidden form for delete addressbook entry
+            page.addLine(u"<form id='del-%s' action='deladdressbookentry' method='post' enctype='multipart/form-data'>" % (address), False)
+            page.addLine(u"<input name='addr' value='%s' type='hidden'>" % (address), False)
+            page.addLine(u"</form>", False)
+
+            #Hidden form to write message
+            page.addLine(u"<form id='msg-%s' action='composer' method='post' enctype='multipart/form-data'>" % (address), False)
+            page.addLine(u"<input name='to' value='%s' type='hidden'>" % (address), False)
+            page.addLine(u"</form>", False)
+
+            #Add buttons
+            page.addLine(u"<a onclick='sendForm(\"msg-%s\")'>Write message</a>" % (address), False)
+            page.addLine(u"<a onclick='sendForm(\"del-%s\", \"Delete %s from addressbook?\")'>Delete</a>" % (address, label), False)
             page.addLine(u"</div>")
 
 
@@ -503,14 +526,14 @@ def chans():
     page.addLine(u"<h1>Chans</h1>", False)
 
     #Form to join chan
-    page.addLine(u"<form action='joinchan' methode='get'>", False)
+    page.addLine(u"<form action='joinchan' method='post' enctype='multipart/form-data'>", False)
     page.addLine(u"<input type='text' name='pw' placeholder='Passphrase' />", False)
     page.addLine(u"<input type='text' name='addr' placeholder='Address' />", False)
     page.addLine(u"<input type='submit' value='Join' class='button' />", False)
     page.addLine(u"</form>")
 
     #Form to create chan
-    page.addLine(u"<form action='createchan' methode='get'>", False)
+    page.addLine(u"<form action='createchan' method='post' enctype='multipart/form-data'>", False)
     page.addLine(u"<input type='text' name='pw' placeholder='Passphrase' />", False)
     page.addLine(u"<input type='submit' value='Create' class='button' />", False)
     page.addLine(u"</form>")
@@ -535,8 +558,13 @@ def chans():
         else:
             page.addLine(label + u" (Disabled)")
         page.addLine(address)
-        page.addLine(u"(Stream %s)" % (str(addr['stream']))) #????
-        page.addLine(u"<a href='leavechan?addr=%s' onclick='return confirm(\"Leave %s?\")'>Leave</a>" % (address, label), False)
+
+        #Hidden form to leave chan
+        page.addLine(u"<form id='%s' action='leavechan' method='post' enctype='multipart/form-data'>" % (address), False)
+        page.addLine(u"<input name='addr' value='%s' type='hidden'>" % (address), False)
+        page.addLine(u"</form>", False)
+
+        page.addLine(u"<a onclick='sendForm(\"%s\", \"Leave chan %s?\")'>Leave</a>" % (address, label), False)
         page.addLine(u"</div>")
 
     return page.getPage()
@@ -576,7 +604,7 @@ def identities():
     page.addLine(u"<h1>Your Identities</h1>", False)
 
     #Form to add random address
-    page.addLine(u"<form action='addrandomaddress' methode='get'>", False)
+    page.addLine(u"<form action='addrandomaddress' method='post' enctype='multipart/form-data'>", False)
     page.addLine(u"New random address: ", False)
     page.addLine(u"<input type='text' name='label' placeholder='Label' />", False)
     page.addLine(u"<input type='submit' value='Generate' class='button' />", False)
@@ -601,7 +629,13 @@ def identities():
             page.addLine(label + u" (Disabled)")
         page.addLine(address)
         page.addLine(u"(Stream %s)" % (str(addr['stream'])))
-        page.addLine(u"<a href='deladdress?addr=%s' onclick='return confirm(\"Remove %s permanently?\")'>Delete</a>" % (address, label), False)
+
+        #Hidden form to delete address
+        page.addLine(u"<form id='%s' action='deladdress' method='post' enctype='multipart/form-data'>" % (address), False)
+        page.addLine(u"<input name='addr' value='%s' type='hidden'>" % (address), False)
+        page.addLine(u"</form>", False)
+
+        page.addLine(u"<a onclick='sendForm(\"%s\", \"Remove %s permanently?\")'>Delete</a>" % (address, label), False)
         page.addLine(u"</div>")
 
     return page.getPage()

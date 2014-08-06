@@ -25,14 +25,8 @@ import password
 import getPages
 from htmlTmpl import HTMLPage
 
+#Value of valid session cookie
 sessionID = None
-
-def parseQuery(url):
-    if not '?' in url:
-        return dict()
-    
-    query = url[url.find('?')+1:]
-    return cgi.parse_qs(query, keep_blank_values = True)
 
 class myRequestHandler(BaseHTTPRequestHandler):
     def write(self, data):
@@ -42,8 +36,35 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
         self.wfile.write(data)
 
-    def do_GET(self):
+    def isAuthenticated(self):
         global sessionID
+
+        #Check seesionID from cookie
+        if sessionID:
+            try:
+                cookie = Cookie.SimpleCookie(self.headers.getheader("cookie"))
+                if sessionID == cookie['sessionID'].value:
+                    return True
+            except:
+                pass
+
+        #If not authenticated
+        if password.isSet():
+            self.write(password.enterHTML())
+        else:
+            self.write(password.setHTML())
+        return False
+
+    def initApi(self):
+        if (not getPages.apiIsInit):
+            error = getPages.initApi();
+
+            if (error):
+                self.write(error)
+                return False
+        return True
+
+    def do_GET(self):
         self.headerFinished = False
         self.send_response(200)
 
@@ -58,73 +79,25 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 pass
             return
 
+        #Parse query
+        if '?' in self.path:
+            qs = self.path[self.path.find('?')+1:]
+            query = cgi.parse_qs(qs, keep_blank_values = True)
+        else:
+            query = None
+
         #Header for text
         self.send_header('Content-type', 'text/html')
 
-        #Session Management
-        authenticated = False
-
-        #Check password
-        if self.path.startswith("/pwd"):
-            query = parseQuery(self.path)
-            try:
-                pwd = query["pwd"][0]
-            except:
-                pwd = None
-
-            if password.isCorrect(pwd):
-                sessionID = urandom(16).encode('base64').strip()
-                self.send_header("Set-Cookie", "sessionID=" + sessionID)
-                authenticated = True
-                self.path = "/inbox"
-                sleep(1) #To slow down brutforce
-            else:
-                self.write(password.enterHTML(True))
-                sleep(1) #To slow down brutforce
-                return
-
-
-        #Set password
-        if self.path.startswith("/setpwd") and not password.isSet():
-            query = parseQuery(self.path)
-            try:
-                pwd = query["pwd"][0]
-                password.set(pwd)
-                authenticated = True
-            except:
-                authenticated = False
-
-        #Logout
-        if self.path.startswith("/logout"):
-            sessionID = None
-
-        #Check seesionID from cookie
-        if sessionID and not authenticated:
-            try:
-                cookie = Cookie.SimpleCookie(self.headers.getheader("cookie"))
-                if sessionID == cookie['sessionID'].value:
-                    authenticated = True
-            except:
-                authenticated = False
-
-        #If not authenticated
-        if not authenticated:
-            if password.isSet():
-                self.write(password.enterHTML())
-            else:
-                self.write(password.setHTML())
+        #Check Authentication
+        if not self.isAuthenticated():
             return
 
-        #End session management. 
         #The following code should only be executed when the user has passed authentication!
 
-        #Init api
-        if (not getPages.apiIsInit):
-            error = getPages.initApi();
-
-            if (error):
-                self.write(error)
-                return
+        #Check api
+        if not self.initApi():
+            return
                 
         #Handel called URL
         if self.path.startswith("/inbox") or self.path == "/":
@@ -134,7 +107,126 @@ class myRequestHandler(BaseHTTPRequestHandler):
             self.write(getPages.outbox())
 
         elif self.path.startswith("/composer"):
-            query = parseQuery(self.path)
+            self.write(getPages.composeMsg())
+
+        elif self.path.startswith("/subscriptions"):
+            self.write(getPages.subscriptions())
+
+        elif self.path.startswith("/addressbook"):
+            self.write(getPages.addressBook())
+
+        elif self.path.startswith("/chans"):
+            self.write(getPages.chans())
+
+        elif self.path.startswith("/identities"):
+            self.write(getPages.identities())
+
+        elif self.path.startswith("/logout"):
+            sessionID = None
+            self.write(password.enterHTML())
+
+        elif self.path.startswith("/markread"):
+            try:
+                msgid = query["msgid"][0]
+            except:
+                return
+
+            getPages.markRead(msgid)
+
+        elif self.path.startswith("/markunread"):
+            try:
+                msgid = query["msgid"][0]
+            except:
+                return
+
+            getPages.markUnread(msgid)
+
+        elif self.path.startswith("/delmsg"):
+            try:
+                msgid = query["msgid"][0]
+            except:
+                return
+
+            getPages.delMsg(msgid)
+
+        elif self.path.startswith("/delsentmsg"):
+            try:
+                msgid = query["msgid"][0]
+            except:
+                return
+
+            getPages.delSentMsg(msgid)
+
+        else:
+            html = HTMLPage()
+            html.addLine("<h1>Page not found!</h1>", False)
+            self.write(html.getPage())
+
+    def do_POST(self):
+        global sessionID
+        self.headerFinished = False
+        self.send_response(200)
+
+        #Header for text
+        self.send_header('Content-type', 'text/html')
+
+        #Parse query
+        try:
+            ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+            if ctype == 'multipart/form-data':
+                query = cgi.parse_multipart(self.rfile, pdict)
+            else:
+                query = None
+        except:
+            query = None
+
+        #Session Management
+        authenticated = False
+
+        #Check password
+        if self.path.startswith("/pwd"):
+            try:
+                pwd = query.get("pwd")[0]
+            except:
+                pwd = None
+
+            if password.isCorrect(pwd):
+                sessionID = urandom(16).encode('base64').strip()
+                self.send_header("Set-Cookie", "sessionID=" + sessionID)
+                authenticated = True
+                #Redirect to inbox
+                self.path = "/inbox"
+                sleep(1) #To slow down brutforce
+            else:
+                self.write(password.enterHTML(True))
+                sleep(1) #To slow down brutforce
+                return
+
+        #Set password
+        if self.path.startswith("/setpwd") and not password.isSet():
+            try:
+                pwd = query["pwd"][0]
+                password.set(pwd)
+                authenticated = True
+            except:
+                authenticated = False
+
+        #Check Authentication
+        if (not authenticated) and (not self.isAuthenticated()) :
+            return
+
+        #End of session management. 
+        #The following code should only be executed when the user has passed authentication!
+
+        #Check api
+        if not self.initApi():
+            return
+                
+        #Handel called URL
+        if self.path.startswith("/inbox") or self.path == "/":
+            self.write(getPages.inbox())
+
+        elif self.path.startswith("/composer"):
             toAddress = ""
             subject = ""
             text = ""
@@ -151,12 +243,11 @@ class myRequestHandler(BaseHTTPRequestHandler):
             self.write(getPages.composeMsg(toAddress, subject, text))
 
         elif self.path.startswith("/sendmsg"):
-            query = parseQuery(self.path)
-            
             try:
                 if query.has_key("to"):
                     toAddress = query["to"][0]
                 else:
+                    #There is no reciever for broadcast messages
                     toAddress = ""
                 fromAddress = query["from"][0]
                 subject = query["subject"][0]
@@ -174,12 +265,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
             self.write(getPages.sendMsg(toAddress, fromAddress, subject, text, broadcast))
 
-        elif self.path.startswith("/subscriptions"):
-            self.write(getPages.subscriptions())
-
         elif self.path.startswith("/unsubscribe"):
-            query = parseQuery(self.path)
-
             try:
                 addr = query["addr"][0]
                 getPages.unsubscribe(addr)
@@ -189,8 +275,6 @@ class myRequestHandler(BaseHTTPRequestHandler):
             self.write(getPages.subscriptions())
 
         elif self.path.startswith("/subscribe"):
-            query = parseQuery(self.path)
-
             try:
                 addr = query["addr"][0]
                 label = query["label"][0]
@@ -200,12 +284,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
             self.write(getPages.subscriptions())
 
-        elif self.path.startswith("/addressbook"):
-            self.write(getPages.addressBook())
-
         elif self.path.startswith("/addaddressbookentry"):
-            query = parseQuery(self.path)
-
             try:
                 addr = query["addr"][0]
                 label = query["label"][0]
@@ -216,8 +295,6 @@ class myRequestHandler(BaseHTTPRequestHandler):
             self.write(getPages.addressBook())
 
         elif self.path.startswith("/deladdressbookentry"):
-            query = parseQuery(self.path)
-
             try:
                 addr = query["addr"][0]
                 getPages.delAddressBookEntry(addr)
@@ -226,12 +303,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
             self.write(getPages.addressBook())
 
-        elif self.path.startswith("/chans"):
-            self.write(getPages.chans())
-
         elif self.path.startswith("/createchan"):
-            query = parseQuery(self.path)
-
             try:
                 pw = query["pw"][0]
                 getPages.createChan(pw)
@@ -241,8 +313,6 @@ class myRequestHandler(BaseHTTPRequestHandler):
             self.write(getPages.chans())
 
         elif self.path.startswith("/joinchan"):
-            query = parseQuery(self.path)
-
             try:
                 pw = query["pw"][0]
                 addr = query["addr"][0]
@@ -253,8 +323,6 @@ class myRequestHandler(BaseHTTPRequestHandler):
             self.write(getPages.chans())
 
         elif self.path.startswith("/leavechan"):
-            query = parseQuery(self.path)
-
             try:
                 addr = query["addr"][0]
                 getPages.leaveChan(addr)
@@ -263,12 +331,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
             
             self.write(getPages.chans())
 
-        elif self.path.startswith("/identities"):
-            self.write(getPages.identities())
-
         elif self.path.startswith("/addrandomaddress"):
-            query = parseQuery(self.path)
-
             try:
                 label = query["label"][0]
                 getPages.genRandomAddress(label)
@@ -278,8 +341,6 @@ class myRequestHandler(BaseHTTPRequestHandler):
             self.write(getPages.identities())
 
         elif self.path.startswith("/deladdress"):
-            query = parseQuery(self.path)
-
             try:
                 addr = query["addr"][0]
                 getPages.delAddress(addr)
@@ -287,46 +348,6 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 pass
 
             self.write(getPages.identities())
-
-        elif self.path.startswith("/markread"):
-            query = parseQuery(self.path)
-
-            try:
-                msgid = query["msgid"][0]
-            except:
-                return
-
-            getPages.markRead(msgid)
-
-        elif self.path.startswith("/markunread"):
-            query = parseQuery(self.path)
-
-            try:
-                msgid = query["msgid"][0]
-            except:
-                return
-
-            getPages.markUnread(msgid)
-
-        elif self.path.startswith("/delmsg"):
-            query = parseQuery(self.path)
-
-            try:
-                msgid = query["msgid"][0]
-            except:
-                return
-
-            getPages.delMsg(msgid)
-
-        elif self.path.startswith("/delsentmsg"):
-            query = parseQuery(self.path)
-
-            try:
-                msgid = query["msgid"][0]
-            except:
-                return
-
-            getPages.delSentMsg(msgid)
 
         else:
             html = HTMLPage()
