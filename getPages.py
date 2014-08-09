@@ -172,12 +172,112 @@ def sanitize(text):
 
     return text
 
-def processText(message):
-    """Decode message and make it html save."""
+def processText(message, msgId = False):
+    """Decode message and make it html save.
+    Replaces images with tags if msgId is given"""
 
     message = message.decode('base64').decode('utf-8')
-    message = sanitize(message)
-    return message
+
+    sanitizedMessage = u""
+
+    imgId = 0
+
+    #Find images
+    while (";base64," in message):
+        base64Pos = message.index(";base64,")
+
+        #Get opening <
+        tagStartPos = base64Pos
+        while (message[tagStartPos] != "<") and (tagStartPos > 0):
+            tagStartPos -= 1
+
+        #Get end pos
+        endPos = message[base64Pos:].index("/>") + base64Pos + 2
+
+        #Get MIME type
+        mimePos = message[tagStartPos:base64Pos].index("data:") + tagStartPos + 5
+
+        mimeEnd = mimePos
+        while (message[mimeEnd] != ";") and (mimeEnd < len(message)):
+            mimeEnd += 1
+
+        mimeType = message[mimePos:mimeEnd]
+
+        #Continue if it's not an image
+        if ("/" in mimeType) and (mimeType.split("/")[0] != "image"):
+            sanitizedMessage += sanitize(message[:endPos])
+            message = message[endPos:]
+            continue
+
+        #Get file extension
+        if ("/" in mimeType):
+            extension = mimeType.split("/")[1]
+        else:
+            extension = mimeType
+
+        #Sanitize message bevor the image
+        sanitizedMessage += sanitize(message[:tagStartPos])
+
+        #Add tag
+        tag = u"<img src='getimage-%s-%s.%s' />" % (msgId, str(imgId), extension)
+        sanitizedMessage += tag
+
+        imgId += 1
+
+        message = message[endPos:]
+
+    if (len(message) > 0):
+        sanitizedMessage += sanitize(message)
+
+    return sanitizedMessage
+
+def getImage(msgId, imgIdWanted):
+    """Returns the mime type and the image with id from message with msgId.
+    Return False if not found."""
+
+    message = getMessageById(msgId)
+    message = message['message'].decode('base64').decode('utf-8')
+
+    imgId = 0
+
+    #Find image
+    while (";base64," in message):
+        base64Pos = message.index(";base64,")
+
+        #Get opening <
+        tagStartPos = base64Pos
+        while (message[tagStartPos] != "<") and (tagStartPos > 0):
+            tagStartPos -= 1
+
+        #Get end pos
+        endPos = message[base64Pos:].index("/>") + base64Pos + 2
+
+        #Get MIME type
+        mimePos = message[tagStartPos:base64Pos].index("data:") + tagStartPos + 5
+
+        mimeEnd = mimePos
+        while (message[mimeEnd] != ";") and (mimeEnd < len(message)):
+            mimeEnd += 1
+
+        mimeType = message[mimePos:mimeEnd]
+
+        #Continue if it's not an image
+        if ("/" in mimeType) and (mimeType.split("/")[0] != "image"):
+            sanitizedMessage += sanitize(message[:endPos])
+            message = message[endPos:]
+            continue
+
+        #Continue if it's not the right image
+        if (imgId != int(imgIdWanted)):
+            message = message[endPos:]
+            imgId += 1
+            continue
+
+        imgStart = base64Pos + 8
+        image = message[imgStart:endPos-2].decode('base64')
+        return (mimeType, image)
+
+    return False
 
 def inbox(): 
     """Returns inbox or error page."""
@@ -205,7 +305,7 @@ def inbox():
         page.addLine(u"To: " + getLabelForAddress(message['toAddress'])) 
         page.addLine(u"Received: " + datetime.datetime.fromtimestamp(float(message['receivedTime'])).strftime('%Y-%m-%d %H:%M:%S'))
         page.addLine(u"<div class='msgText'>", False)
-        page.addLine(processText(message['message']))
+        page.addLine(processText(message['message'], msgId))
         page.addLine(u"</div>")
 
         #Prepare text for reply and add it to the link
@@ -262,7 +362,7 @@ def outbox():
         page.addLine(u"Status: " + message['status']) 
         page.addLine(u"Send: " + datetime.datetime.fromtimestamp(float(message['lastActionTime'])).strftime('%Y-%m-%d %H:%M:%S'))
         page.addLine(u"<div class='msgText'>", False)
-        page.addLine(processText(message['message']))
+        page.addLine(processText(message['message'], msgId))
         page.addLine(u"</div>")
         page.addLine(u"<a onclick='delSentMsg(\"%s\")'>Delete</a>" % (msgId))
         page.addLine(u"</div>")

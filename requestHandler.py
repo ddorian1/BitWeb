@@ -49,6 +49,10 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 pass
 
         #If not authenticated
+
+        #Header for text
+        self.send_header('Content-type', 'text/html')
+
         if password.isSet():
             self.write(password.enterHTML())
         else:
@@ -87,9 +91,6 @@ class myRequestHandler(BaseHTTPRequestHandler):
         else:
             query = None
 
-        #Header for text
-        self.send_header('Content-type', 'text/html')
-
         #Check Authentication
         if not self.isAuthenticated():
             return
@@ -101,6 +102,27 @@ class myRequestHandler(BaseHTTPRequestHandler):
             return
                 
         #Handel called URL
+
+        #Return requested image
+        if self.path.startswith("/getimage"):
+            params = self.path.split("-")
+            msgId = params[1]
+            imgId = params[2].split(".")[0]
+            
+            ret = getPages.getImage(msgId, imgId)
+            if not ret:
+                return
+
+            mimeType, image = ret
+            
+            self.send_header('Content-type', mimeType)
+            self.write(image)
+            return
+        else:
+            #Header for text
+            self.send_header('Content-type', 'text/html')
+
+        #Return requestet page
         if self.path.startswith("/inbox") or self.path == "/":
             self.write(getPages.inbox())
 
@@ -168,9 +190,6 @@ class myRequestHandler(BaseHTTPRequestHandler):
         self.headerFinished = False
         self.send_response(200)
 
-        #Header for text
-        self.send_header('Content-type', 'text/html')
-
         #Parse query
         try:
             ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
@@ -199,6 +218,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
                 self.path = "/inbox"
                 sleep(1) #To slow down brutforce
             else:
+                self.send_header('Content-type', 'text/html')
                 self.write(password.enterHTML(True))
                 sleep(1) #To slow down brutforce
                 return
@@ -222,6 +242,9 @@ class myRequestHandler(BaseHTTPRequestHandler):
         #Check api
         if not self.initApi():
             return
+
+        #Header for text
+        self.send_header('Content-type', 'text/html')
                 
         #Handel called URL
         if self.path.startswith("/inbox") or self.path == "/":
