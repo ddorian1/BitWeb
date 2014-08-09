@@ -222,9 +222,7 @@ def inbox():
 
         #Hidden form for reply
         page.addLine(u"<form id='%s' action='composer' method='post' enctype='multipart/form-data'>" % (msgId), False)
-        page.addLine(u"<input name='to' value='%s' type='hidden'>" % (to), False)
-        page.addLine(u"<input name='subject' value='%s' type='hidden'>" % (subject), False)
-        page.addLine(u"<input name='text' value='%s' type='hidden'>" % (text), False)
+        page.addLine(u"<input name='replyto' value='%s' type='hidden'>" % (msgId), False)
         page.addLine(u"</form>", False)
 
         #Add buttons 
@@ -372,17 +370,47 @@ def subscribe(addr, label):
     except:
         pass
 
-def composeMsg(to = "", subject = "", text = ""):
+def getMessageById(msgId):
+    """Returns inbox message with given id or None."""
+    try:
+        inboxMessages = json.loads(api.getAllInboxMessages())
+    except:
+        return None
+
+    messages = inboxMessages['inboxMessages']
+    for message in messages: 
+        if (msgId == message['msgid']):
+            return message
+
+    return None
+
+def composeMsg(replyTo = False, toAddress = False):
     """Returns page to compose message or error page.
     Optionally takes to, subject or text.
     Subject and text must be base64 encoded."""
 
     page = HTMLPage()
 
-    if (subject != ""):
-        subject = subject.decode('base64').decode('utf-8')
-    if (text != ""):
-        text = text.decode('base64').decode('utf-8')
+    if replyTo:
+        message = getMessageById(replyTo)
+        if message:
+            toAddress = message['fromAddress']
+
+            subject = message['subject'].decode('base64').decode('utf-8')
+            if not subject.startswith(u"Re:"):
+                subject = u"Re: " + subject
+
+            text = message['message'].decode('base64').decode('utf-8')
+            text = u"\n\n------------------------------------------------------\n" + text
+        else:
+            toAddress = u""
+            subject = u""
+            text = u""
+    else:
+        if not toAddress:
+            toAddress = u""
+        subject = u""
+        text = u""
 
     page.addLine(u"<h1>Composer</h1>", False)
     page.addLine(u"<form action='sendmsg' method='post' enctype='multipart/form-data'>", False)
@@ -394,7 +422,7 @@ def composeMsg(to = "", subject = "", text = ""):
     page.addLine(u"Send broadcast message")
 
     #To
-    page.addLine(u"<input type='text' size='40' name='to' id='to' placeholder='To' value='%s' />" % (to))
+    page.addLine(u"<input type='text' size='40' name='to' id='to' placeholder='To' value='%s' />" % (toAddress))
 
     #Get own address to chose sender
     page.addLine(u"From: <select name='from' size='1'>", False)

@@ -65,6 +65,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
         return True
 
     def do_GET(self):
+        global sessionID
         self.headerFinished = False
         self.send_response(200)
 
@@ -227,20 +228,17 @@ class myRequestHandler(BaseHTTPRequestHandler):
             self.write(getPages.inbox())
 
         elif self.path.startswith("/composer"):
-            toAddress = ""
-            subject = ""
-            text = ""
+            toAddress = False
+            replyTo = False
             try:
                 if query.has_key("to"):
                     toAddress = query["to"][0]
-                if query.has_key("subject"):
-                    subject = query["subject"][0]
-                if query.has_key("text"):
-                    text = query["text"][0]
+                if query.has_key("replyto"):
+                    replyTo = query["replyto"][0]
             except:
                 pass
                 
-            self.write(getPages.composeMsg(toAddress, subject, text))
+            self.write(getPages.composeMsg(replyTo, toAddress))
 
         elif self.path.startswith("/sendmsg"):
             try:
