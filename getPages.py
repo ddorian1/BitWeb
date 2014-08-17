@@ -23,9 +23,13 @@ import sys
 import os
 
 from htmlTmpl import HTMLPage
+from hashlib import sha256
 
 api = ''
 apiIsInit = False
+
+#save images of last shown page in format {imageHash : msgId}
+images = dict()
 
 def lookupAppdataFolder(): 
     """Get's the appropriate folders for the .dat files depending on the OS. 
@@ -172,17 +176,15 @@ def sanitize(text):
 
     return text
 
-def processText(message, msgId = False):
-    """Decode message and make it html save.
-    Replaces images with tags if msgId is given"""
-
-    message = message.decode('base64').decode('utf-8')
+def processImages(message, msgId, getImage = False):
+    """Search images in text and sanitizes text.
+    If getImage = False, images are replced with <img... tags.
+    Else, getImage must be the hash of the searched image."""
 
     sanitizedMessage = u""
 
-    imgId = 0
+    global images
 
-    #Find images
     while (";base64," in message):
         base64Pos = message.index(";base64,")
 
@@ -192,7 +194,12 @@ def processText(message, msgId = False):
             tagStartPos -= 1
 
         #Get end pos
-        endPos = message[base64Pos:].index("/>") + base64Pos + 2
+        if "/>" in message[base64Pos:]:
+            endPos = message[base64Pos:].index("/>") + base64Pos + 2
+        elif ">" in message[base64Pos:]:
+            endPos = message[base64Pos:].index(">") + base64Pos + 1
+        else:
+            break
 
         #Get MIME type
         mimePos = message[tagStartPos:base64Pos].index("data:") + tagStartPos + 5
@@ -205,7 +212,8 @@ def processText(message, msgId = False):
 
         #Continue if it's not an image
         if ("/" in mimeType) and (mimeType.split("/")[0] != "image"):
-            sanitizedMessage += sanitize(message[:endPos])
+            if not getImage:
+                sanitizedMessage += sanitize(message[:endPos])
             message = message[endPos:]
             continue
 
@@ -215,72 +223,63 @@ def processText(message, msgId = False):
         else:
             extension = mimeType
 
-        #Sanitize message bevor the image
-        sanitizedMessage += sanitize(message[:tagStartPos])
+        #Get image
+        imgStart = base64Pos + 8
+        image = message[imgStart:endPos-2].decode('base64')
+        imageHash = sha256(image).hexdigest()
 
-        #Add tag
-        tag = u"<img src='getimage-%s-%s.%s' />" % (msgId, str(imgId), extension)
-        sanitizedMessage += tag
+        #Store msgId to find image faster
+        images[imageHash] = msgId
 
-        imgId += 1
+        if not getImage:
+            #Sanitize message bevor the image
+            sanitizedMessage += sanitize(message[:tagStartPos])
+
+            #Add tag
+            tag = u"<img src='getimage-%s.%s' />" % (imageHash, extension)
+            sanitizedMessage += tag
+        else:
+            if imageHash == getImage:
+                return (mimeType, image)
 
         message = message[endPos:]
 
-    if (len(message) > 0):
-        sanitizedMessage += sanitize(message)
+    if not getImage:
+        if (len(message) > 0):
+            sanitizedMessage += sanitize(message)
+        return sanitizedMessage
+    else:
+        return False
 
-    return sanitizedMessage
+def processText(message, msgId = False):
+    """Decode message and make it html save.
+    Replaces images with tags if msgId is given"""
 
-def getImage(msgId, imgIdWanted):
+    message = message.decode('base64').decode('utf-8')
+
+    if msgId:
+        return processImages(message, msgId)
+    else:
+        return sanitize(message)
+
+def getImage(imageHash):
     """Returns the mime type and the image with id from message with msgId.
     Return False if not found."""
 
-    message = getMessageById(msgId)
-    message = message['message'].decode('base64').decode('utf-8')
-
-    imgId = 0
-
-    #Find image
-    while (";base64," in message):
-        base64Pos = message.index(";base64,")
-
-        #Get opening <
-        tagStartPos = base64Pos
-        while (message[tagStartPos] != "<") and (tagStartPos > 0):
-            tagStartPos -= 1
-
-        #Get end pos
-        endPos = message[base64Pos:].index("/>") + base64Pos + 2
-
-        #Get MIME type
-        mimePos = message[tagStartPos:base64Pos].index("data:") + tagStartPos + 5
-
-        mimeEnd = mimePos
-        while (message[mimeEnd] != ";") and (mimeEnd < len(message)):
-            mimeEnd += 1
-
-        mimeType = message[mimePos:mimeEnd]
-
-        #Continue if it's not an image
-        if ("/" in mimeType) and (mimeType.split("/")[0] != "image"):
-            sanitizedMessage += sanitize(message[:endPos])
-            message = message[endPos:]
-            continue
-
-        #Continue if it's not the right image
-        if (imgId != int(imgIdWanted)):
-            message = message[endPos:]
-            imgId += 1
-            continue
-
-        imgStart = base64Pos + 8
-        image = message[imgStart:endPos-2].decode('base64')
-        return (mimeType, image)
-
-    return False
+    if images.has_key(imageHash):
+        msgId = images[imageHash]
+        message = getMessageById(msgId)
+        message = message['message'].decode('base64').decode('utf-8')
+        return processImages(message, msgId, imageHash)
+    else:
+        return False
 
 def inbox(): 
     """Returns inbox or error page."""
+
+    #Clear image cache
+    global images
+    images = dict()
 
     page = HTMLPage()
     page.addLine(u"<h1>Inbox</h1>", False)
@@ -335,6 +334,10 @@ def inbox():
 
 def outbox():
     """Returns page with outbox or error page."""
+
+    #Clear image cache
+    global images
+    images = dict()
 
     page = HTMLPage()
     page.addLine(u"<h1>Outbox</h1>", False)
@@ -474,13 +477,14 @@ def getMessageById(msgId):
     """Returns inbox message with given id or None."""
     try:
         inboxMessages = json.loads(api.getAllInboxMessages())
+        outboxMessages = json.loads(api.getAllSentMessages())
     except:
         return None
 
-    messages = inboxMessages['inboxMessages']
-    for message in messages: 
-        if (msgId == message['msgid']):
-            return message
+    for messages in (outboxMessages['sentMessages'], inboxMessages['inboxMessages']):
+        for message in messages: 
+            if (msgId == message['msgid']):
+                return message
 
     return None
 

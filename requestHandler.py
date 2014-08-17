@@ -106,10 +106,9 @@ class myRequestHandler(BaseHTTPRequestHandler):
         #Return requested image
         if self.path.startswith("/getimage"):
             params = self.path.split("-")
-            msgId = params[1]
-            imgId = params[2].split(".")[0]
+            imageHash = params[1].split(".")[0]
             
-            ret = getPages.getImage(msgId, imgId)
+            ret = getPages.getImage(imageHash)
             if not ret:
                 return
 
