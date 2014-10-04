@@ -169,7 +169,7 @@ function broadcastMsg(brd) {
     document.getElementById("to").disabled = brd;
 }
 
-function sendForm(id, conf = false) {
+function sendForm(id, conf) {
     if (conf) {
         if (! confirm(conf)) return false;
     }
