@@ -188,6 +188,7 @@ function sendForm(id, conf) {
     <a href="chans" class="menu">Chans</a>
     <a href="addressbook" class="menu">Address book</a>
     <a href="identities" class="menu">Your identities</a>
+    <a href="status" class="menu">Connection status</a>
     <a href="logout" class="menu">Logout</a>
     <br />
 <hr />

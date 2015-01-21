@@ -14,6 +14,7 @@ This should already work:
 * Manage your addresses (Can't yet create deterministic addresses)
 * Use the address book
 * Chans
+* Show connection status
 
 To use it, just download the files to your sever and set the port you want to use in bitweb.py. You have to set up the api in PyBitmessage's keys.dat file (See https://bitmessage.org/wiki/API_Reference) and run bitweb.py as the same user as PyBitmessage.
 BitWeb will try to read the api settings from PyBitmessage keys.dat file.

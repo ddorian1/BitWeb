@@ -789,7 +789,53 @@ def delAddress(addr):
         api.deleteAddress(addr)
     except:
         pass
-        
+    
+
+def getNetworkStatusString(networkStatus):
+    """Translate 'networkStatus' to something more readable"""
+    try:
+        if networkStatus == 'notConnected':
+            return "Not connected"
+        elif networkStatus == 'connectedButHaveNotReceivedIncomingConnections':
+            return "Connected (Without incomming connections)"
+        elif networkStatus == 'connectedAndReceivingIncomingConnections':
+            return "Connected (With incomming connections)"
+        else:
+            return "Unknown"
+    except:
+        # We shouldn't get here..
+        return "Unknown"
+
+def connectionStatus():
+    """Returns page with connection Status"""
+
+    try:
+        page = HTMLPage()
+        page.addLine(u"<h1>Connection status</h1>", False)
+
+        try:
+            status = json.loads(api.clientStatus())
+                
+            page.addLine(u"<center><table border=1>", False)
+            page.addLine(u"<tr><th>Network status</th><td>"+getNetworkStatusString(status['networkStatus'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Number of connections</th><td>"+str(status['networkConnections'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Number of messages processed</th><td>"+str(status['numberOfMessagesProcessed'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Number of broadcasts processed</th><td>"+str(status['numberOfBroadcastsProcessed'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Number of pubkeys processed</th><td>"+str(status['numberOfPubkeysProcessed'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Software</th><td>"+status['softwareName']+"</td></tr>", False)
+            page.addLine(u"<tr><th>Software Version</th><td>"+status['softwareVersion']+"</td></tr>", False)
+            page.addLine(u"</table></center>", False) 
+        except:
+            isInit = False
+            return connectionErrorPage()
+
+    except:
+        page = connectionErrorPage()
+        apiIsInit = False
+
+    return page.getPage()
+
+    
 def initApi():
     """Init api. Returns error page in case of error, else returns False."""
 

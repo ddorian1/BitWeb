@@ -143,6 +143,9 @@ class myRequestHandler(BaseHTTPRequestHandler):
         elif self.path.startswith("/identities"):
             self.write(getPages.identities())
 
+        elif self.path.startswith("/status"):
+            self.write(getPages.connectionStatus())
+
         elif self.path.startswith("/logout"):
             sessionID = None
             self.write(password.enterHTML())
