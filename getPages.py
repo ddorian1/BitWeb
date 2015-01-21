@@ -795,7 +795,7 @@ def getNetworkStatusString(networkStatus):
     """Translate 'networkStatus' to something more readable"""
     try:
         if networkStatus == 'notConnected':
-            return "Not Connected"
+            return "Not connected"
         elif networkStatus == 'connectedButHaveNotReceivedIncomingConnections':
             return "Connected (Without incomming connections)"
         elif networkStatus == 'connectedAndReceivingIncomingConnections':
@@ -811,17 +811,17 @@ def connectionStatus():
 
     try:
         page = HTMLPage()
-        page.addLine(u"<h1>Connection Status</h1>", False)
+        page.addLine(u"<h1>Connection status</h1>", False)
 
         try:
             status = json.loads(api.clientStatus())
                 
             page.addLine(u"<center><table border=1>", False)
-            page.addLine(u"<tr><th>Network Status</th><td>"+getNetworkStatusString(status['networkStatus'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Network status</th><td>"+getNetworkStatusString(status['networkStatus'])+"</td></tr>", False)
             page.addLine(u"<tr><th>Number of connections</th><td>"+str(status['networkConnections'])+"</td></tr>", False)
-            page.addLine(u"<tr><th>Number of Messages processed</th><td>"+str(status['numberOfMessagesProcessed'])+"</td></tr>", False)
-            page.addLine(u"<tr><th>Number of Broadcases processed</th><td>"+str(status['numberOfBroadcastsProcessed'])+"</td></tr>", False)
-            page.addLine(u"<tr><th>Number of Pubkeys processed</th><td>"+str(status['numberOfPubkeysProcessed'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Number of messages processed</th><td>"+str(status['numberOfMessagesProcessed'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Number of broadcasts processed</th><td>"+str(status['numberOfBroadcastsProcessed'])+"</td></tr>", False)
+            page.addLine(u"<tr><th>Number of pubkeys processed</th><td>"+str(status['numberOfPubkeysProcessed'])+"</td></tr>", False)
             page.addLine(u"<tr><th>Software</th><td>"+status['softwareName']+"</td></tr>", False)
             page.addLine(u"<tr><th>Software Version</th><td>"+status['softwareVersion']+"</td></tr>", False)
             page.addLine(u"</table></center>", False) 
