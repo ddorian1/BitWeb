@@ -21,7 +21,9 @@ header = """
 <head>
 <title>Bitmessage</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="viewport" content="width=device-width"; />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="-1" />
+<meta name="viewport" content="width=device-width" />
 
 <link rel="icon" type="image/x-icon" href="favicon.ico" />
 <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
