@@ -43,7 +43,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
         if sessionID:
             try:
                 cookie = Cookie.SimpleCookie(self.headers.getheader("cookie"))
-                if sessionID == cookie['sessionID'].value:
+                if sessionID == cookie['bitweb_sessionID'].value:
                     return True
             except:
                 pass
@@ -214,7 +214,7 @@ class myRequestHandler(BaseHTTPRequestHandler):
 
             if password.isCorrect(pwd):
                 sessionID = urandom(16).encode('base64').strip()
-                self.send_header("Set-Cookie", "sessionID=" + sessionID)
+                self.send_header("Set-Cookie", "bitweb_sessionID=\"" + sessionID + "\"; Max-Age=2592000; Version=\"1\"; Secure; Port; HttpOnly")
                 authenticated = True
                 #Redirect to inbox
                 self.path = "/inbox"
