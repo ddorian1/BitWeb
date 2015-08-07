@@ -535,7 +535,7 @@ def composeMsg(replyTo = False, toAddress = False):
         response = api.listAddresses()
         addresses = json.loads(response)
         for entry in addresses['addresses']:
-            opt = u"<option value='%s'>%s</option>" % (entry['address'], entry['label'].decode('base64').decode('utf-8'))
+            opt = u"<option value='%s'>%s</option>" % (entry['address'], entry['label'].decode('utf-8'))
             page.addLine(opt, False)
     except:
         apiIsInit = False
@@ -624,7 +624,7 @@ def getKnownAddresses():
         addresses = json.loads(response)
         for entry in addresses['addresses']:
             if entry['address'] not in knownAddresses:
-                knownAddresses[entry['address']] = u"%s (%s)" % (entry['label'].decode('base64').decode('utf-8'), entry['address'])
+                knownAddresses[entry['address']] = u"%s (%s)" % (entry['label'].decode('utf-8'), entry['address'])
     except:
         return False
 
@@ -680,7 +680,7 @@ def chans():
     for addr in addresses['addresses']:
         if (not addr['chan']):
             continue
-        label = sanitize(addr['label'].decode('base64').decode('utf-8'))
+        label = sanitize(addr['label'].decode('utf-8'))
         if label.startswith("[chan] "):
             label = label[7:]
         address = addr['address']
@@ -752,7 +752,7 @@ def identities():
     for addr in addresses['addresses']:
         if (addr['chan']):
             continue
-        label = sanitize(addr['label'].decode('base64').decode('utf-8'))
+        label = sanitize(addr['label'].decode('utf-8'))
         address = addr['address']
         page.addLine(u"<div class='addrbookentry'>", False)
         if (addr['enabled']):
