@@ -532,7 +532,7 @@ def composeMsg(replyTo = False, toAddress = False):
     page.addLine(u"From: <select name='from' size='1'>", False)
 
     try:
-        response = api.listAddresses2()
+        response = api.listAddresses()
         addresses = json.loads(response)
         for entry in addresses['addresses']:
             opt = u"<option value='%s'>%s</option>" % (entry['address'], entry['label'].decode('base64').decode('utf-8'))
@@ -620,7 +620,7 @@ def getKnownAddresses():
 
     # add from my addresses
     try:
-        response = api.listAddresses2()
+        response = api.listAddresses()
         addresses = json.loads(response)
         for entry in addresses['addresses']:
             if entry['address'] not in knownAddresses:
@@ -672,7 +672,7 @@ def chans():
 
     #Show all chans
     try:
-        addresses = json.loads(api.listAddresses2())
+        addresses = json.loads(api.listAddresses())
     except:
         isInit = False
         return connectionErrorPage()
@@ -744,7 +744,7 @@ def identities():
 
     #Show all addresses
     try:
-        addresses = json.loads(api.listAddresses2())
+        addresses = json.loads(api.listAddresses())
     except:
         isInit = False
         return connectionErrorPage()
