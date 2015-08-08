@@ -532,10 +532,10 @@ def composeMsg(replyTo = False, toAddress = False):
     page.addLine(u"From: <select name='from' size='1'>", False)
 
     try:
-        response = api.listAddresses2()
+        response = api.listAddresses()
         addresses = json.loads(response)
         for entry in addresses['addresses']:
-            opt = u"<option value='%s'>%s</option>" % (entry['address'], entry['label'].decode('base64').decode('utf-8'))
+            opt = u"<option value='%s'>%s</option>" % (entry['address'], entry['label'].decode('utf-8'))
             page.addLine(opt, False)
     except:
         apiIsInit = False
@@ -620,11 +620,11 @@ def getKnownAddresses():
 
     # add from my addresses
     try:
-        response = api.listAddresses2()
+        response = api.listAddresses()
         addresses = json.loads(response)
         for entry in addresses['addresses']:
             if entry['address'] not in knownAddresses:
-                knownAddresses[entry['address']] = u"%s (%s)" % (entry['label'].decode('base64').decode('utf-8'), entry['address'])
+                knownAddresses[entry['address']] = u"%s (%s)" % (entry['label'].decode('utf-8'), entry['address'])
     except:
         return False
 
@@ -672,7 +672,7 @@ def chans():
 
     #Show all chans
     try:
-        addresses = json.loads(api.listAddresses2())
+        addresses = json.loads(api.listAddresses())
     except:
         isInit = False
         return connectionErrorPage()
@@ -680,7 +680,7 @@ def chans():
     for addr in addresses['addresses']:
         if (not addr['chan']):
             continue
-        label = sanitize(addr['label'].decode('base64').decode('utf-8'))
+        label = sanitize(addr['label'].decode('utf-8'))
         if label.startswith("[chan] "):
             label = label[7:]
         address = addr['address']
@@ -744,7 +744,7 @@ def identities():
 
     #Show all addresses
     try:
-        addresses = json.loads(api.listAddresses2())
+        addresses = json.loads(api.listAddresses())
     except:
         isInit = False
         return connectionErrorPage()
@@ -752,7 +752,7 @@ def identities():
     for addr in addresses['addresses']:
         if (addr['chan']):
             continue
-        label = sanitize(addr['label'].decode('base64').decode('utf-8'))
+        label = sanitize(addr['label'].decode('utf-8'))
         address = addr['address']
         page.addLine(u"<div class='addrbookentry'>", False)
         if (addr['enabled']):
